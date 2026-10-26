@@ -1,4 +1,76 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Book Catalogue</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f5f7fb;color:#172033;font:16px/1.5 system-ui,Arial}header{background:#17365d;color:white;padding:24px 16px}header div,main,footer{max-width:1000px;margin:auto}h1{margin:0}main{padding:20px 14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.card,.detail{background:white;border:1px solid #e0e5ed;border-radius:14px;padding:16px}.card img{width:100%;height:180px;object-fit:contain}.card h2{font-size:18px}.muted{color:#667085;font-size:14px}.price{font-weight:750;color:#126b45;font-size:20px}a{color:#2356d8}.button{display:inline-block;background:#2356d8;color:white;text-decoration:none;padding:9px 12px;border-radius:8px}.search{width:100%;padding:12px;border:1px solid #ccd4e0;border-radius:10px;font:inherit;margin-bottom:16px}.detail{display:grid;grid-template-columns:minmax(150px,280px) 1fr;gap:22px}.detail img{width:100%;max-height:380px;object-fit:contain}.field{padding:8px 0;border-bottom:1px solid #edf0f4}.field b{display:inline-block;min-width:120px}footer{padding:20px;color:#667085;font-size:13px}@media(max-width:600px){.detail{grid-template-columns:1fr}}</style></head><body><header><div><h1>Book Catalogue</h1><p>Scan the QR code to view book details.</p></div></header><main id="app">Loading catalogue…</main><footer>Book details are provided by the publisher. Prices and editions may change.</footer><script>
-const app=document.getElementById('app');function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-fetch('./books.json').then(r=>r.json()).then(books=>{let id=new URLSearchParams(location.search).get('id'),b=books.find(x=>x.id===id);if(b){document.title=b.title+' — Book Details';app.innerHTML=`<a href="./">← All books</a><section class="detail" style="margin-top:14px"><img src="${esc(b.image)}" alt="Book cover" onerror="this.style.display='none'"><div><p class="muted">${esc(b.id)}</p><h2>${esc(b.title)}</h2><p class="price">${esc(b.price)}</p><div class="field"><b>Class:</b> ${esc(b.class)}</div><div class="field"><b>Publisher:</b> ${esc(b.publisher)}</div><div class="field"><b>Edition:</b> ${esc(b.edition)}</div><div class="field"><b>Language:</b> ${esc(b.language)}</div><div class="field"><b>Description:</b> ${esc(b.description)}</div></div></section>`}else{app.innerHTML='<input class="search" id="search" placeholder="Search title or book ID"><section class="grid" id="grid"></section>';let q=document.getElementById('search'),g=document.getElementById('grid');function draw(){g.innerHTML=books.filter(b=>(b.title+' '+b.id+' '+b.class).toLowerCase().includes(q.value.toLowerCase())).map(b=>`<article class="card"><img src="${esc(b.image)}" onerror="this.style.visibility='hidden'"><p class="muted">${esc(b.id)} · ${esc(b.class)}</p><h2>${esc(b.title)}</h2><p class="price">${esc(b.price)}</p><a class="button" href="?id=${encodeURIComponent(b.id)}">View details</a></article>`).join('')}q.oninput=draw;draw()}}).catch(()=>app.innerHTML='Could not load catalogue. Make sure books.json is uploaded beside index.html.');</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Book catalogue and details for E1, E2 and E3 books.">
+<title>Book Catalogue</title>
+<style>
+:root{--ink:#172033;--muted:#64748b;--line:#e2e8f0;--brand:#1d4ed8;--bg:#f8fafc}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg)}
+header{background:#173b70;color:white;padding:24px 16px}header .wrap,main{max-width:1000px;margin:auto}
+h1{margin:0 0 8px;font-size:clamp(24px,4vw,34px)}header p{margin:0;color:#dbeafe}
+main{padding:22px 16px 48px}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+input,select,button{font:inherit;border:1px solid #cbd5e1;border-radius:10px;padding:11px 12px;background:white}
+input{flex:1;min-width:200px}button{cursor:pointer;color:white;background:var(--brand);border-color:var(--brand)}
+.back{display:inline-block;margin-bottom:16px;color:var(--brand);text-decoration:none;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 2px 8px #0f172a08}
+.cover{height:180px;background:linear-gradient(135deg,#dbeafe,#f1f5f9);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:#1e3a8a;font-weight:bold;font-size:22px}
+.cover img{width:100%;height:100%;object-fit:contain;background:white}
+.cardbody{padding:16px}.card h2{font-size:18px;margin:0 0 8px}.muted{color:var(--muted);font-size:14px}
+a.cardlink{display:block;color:inherit;text-decoration:none}.cardlink:hover{transform:translateY(-2px)}
+.detail{display:grid;grid-template-columns:minmax(220px, .8fr) 1.2fr;gap:24px;background:white;border:1px solid var(--line);border-radius:16px;padding:20px}
+.detail .cover{height:320px;border-radius:12px}.detail h2{margin-top:0;font-size:28px}
+dl{display:grid;grid-template-columns:130px 1fr;gap:0;margin:18px 0}dt,dd{padding:11px 0;border-bottom:1px solid var(--line);margin:0;overflow-wrap:anywhere}dt{font-weight:bold;color:#475569}
+.notice{background:#eff6ff;border:1px solid #bfdbfe;padding:12px 14px;border-radius:10px;color:#1e40af;margin-bottom:18px}
+footer{text-align:center;color:var(--muted);padding:24px;font-size:13px}
+@media(max-width:650px){.detail{grid-template-columns:1fr}.detail .cover{height:240px}dl{grid-template-columns:110px 1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1 id="siteTitle">Book Catalogue</h1><p>Explore our E1, E2 and E3 books</p></div></header>
+<main id="app"><p>Loading catalogue…</p></main>
+<footer>Book information supplied by the publisher.</footer>
+<script>
+const app = document.getElementById('app');
+let books = [];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const val = (s) => String(s ?? '').trim();
+function cover(book, extraClass='') {
+  const img = val(book.image);
+  if (img) return `<div class="cover ${extraClass}"><img src="${esc(img)}" alt="${esc(book.title)} cover" onerror="this.parentElement.innerHTML='${esc(book.title).replace(/'/g, '&#39;')}'"></div>`;
+  return `<div class="cover ${extraClass}">${esc(book.title)}<br><small style="font-size:13px;font-weight:normal">Add book cover image</small></div>`;
+}
+function card(book) {
+ return `<a class="cardlink" href="?code=${encodeURIComponent(book.code)}"><article class="card">${cover(book)}<div class="cardbody"><h2>${esc(book.title)}</h2><div class="muted">Class: ${esc(book.class)} · Code: ${esc(book.code)}</div><p><strong>${val(book.price) ? 'Rs. '+esc(book.price) : 'Price to be added'}</strong></p></div></article></a>`;
+}
+function renderCatalog() {
+ document.title='Book Catalogue';
+ app.innerHTML=`<div class="notice">Select a book to view its details. Prices, writer, designer, publisher and cover pictures can be filled in <b>books.json</b>.</div>
+ <div class="toolbar"><input id="search" placeholder="Search by book title or code…" aria-label="Search books"><select id="classFilter" aria-label="Filter by class"><option value="">All classes</option><option>E1</option><option>E2</option><option>E3</option></select></div><div id="grid" class="grid"></div>`;
+ const search=document.getElementById('search'), filter=document.getElementById('classFilter'), grid=document.getElementById('grid');
+ function update(){const q=search.value.toLowerCase().trim(), c=filter.value;const matches=books.filter(b=>(!c||b.class===c)&&(`${b.title} ${b.code}`).toLowerCase().includes(q));grid.innerHTML=matches.length?matches.map(card).join(''):'<p>No books match your search.</p>';}
+ search.addEventListener('input',update);filter.addEventListener('change',update);update();
+}
+function renderDetail(book) {
+ document.title=book.title+' | Book Catalogue';
+ app.innerHTML=`<a class="back" href="./">← All books</a><section class="detail">${cover(book)}<div><div class="muted">Book code: ${esc(book.code)}</div><h2>${esc(book.title)}</h2><dl>
+ <dt>Class</dt><dd>${esc(val(book.class)||'Not added yet')}</dd>
+ <dt>Price</dt><dd>${val(book.price)?'Rs. '+esc(book.price):'Not added yet'}</dd>
+ <dt>Publisher</dt><dd>${esc(val(book.publisher)||'Not added yet')}</dd>
+ <dt>Writer / Author</dt><dd>${esc(val(book.writer)||'Not added yet')}</dd>
+ <dt>Designer</dt><dd>${esc(val(book.designer)||'Not added yet')}</dd>
+ <dt>Edition</dt><dd>${esc(val(book.edition)||'Not added yet')}</dd>
+ <dt>Description</dt><dd>${esc(val(book.description)||'Not added yet')}</dd>
+ </dl><p class="muted">To update these details, edit the matching book in books.json.</p></div></section>`;
+}
+fetch('./books.json').then(r=>{if(!r.ok)throw new Error('Could not load books.json');return r.json()}).then(items=>{
+ books=items;
+ const code=new URLSearchParams(location.search).get('code');
+ if(code){const b=books.find(x=>x.code===code);b?renderDetail(b):(app.innerHTML='<p>Book not found. <a href="./">View all books</a></p>');}
+ else renderCatalog();
+}).catch(()=>{app.innerHTML='<h2>Catalogue could not load</h2><p>Make sure index.html and books.json are both uploaded to the same GitHub Pages folder.</p>';});
+</script>
+</body>
+</html>
